@@ -2,40 +2,45 @@ var FluxDataSelector = (function() {
 
 var sdk;
 
-var DataSelector = function DataSelector(clientId, redirectUri) {
+var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
     this.clientId = clientId;
     this.redirectUri = redirectUri;
-    this.onReady = function(res) { console.log(res); };
-    this.onNotification = function(res) { console.log(res); };
-
+    if (config) {
+        this.exampleDataTable = config.exampleData
+        this.setOnInitial = config.setOnInitial;
+        this.setOnLogin = config.setOnLogin;
+        this.setOnExamples = config.setOnExamples;
+        this.setOnProjects = config.setOnProjects;
+        this.setOnKeys = config.setOnKeys;
+        this.setOnValue = config.setOnValue;
+    }
 }
 
 DataSelector.prototype = {
-        setOnReady: setOnReady,
-        setOnNotification: setOnNotification,
-        init: init,
-        getSDK: getSDK,
-        isAuthed: isAuthed,
-        login: login,
-        logout: logout,
-        setExampleData: setExampleData,
-        listExampleData: listExampleData,
-        getExampleData: getExampleData,
-        selectExampleData: selectExampleData,
-        listFluxProjects: listFluxProjects,
-        listFluxDataKeys: listFluxDataKeys,
-        getFluxValue: getFluxValue,
-        selectFluxData: selectFluxData,
-        getData: getData
-}
+    // Initialization
+    init: init,
 
-function setOnReady(callback) {
-    this.onReady = callback;
-}
+    // Configuration functions.
+    setExampleData: setExampleData,
+    setOnInitial: setOnInitial,
+    setOnLogin: setOnLogin,
+    setOnExamples: setOnExamples,
+    setOnProjects: setOnProjects,
+    setOnKeys: setOnKeys,
+    setOnValue: setOnValue,
 
-function setOnNotification(callback) {
-    this.onNotification = callback;
+    // User actions.
+    login: login,
+    logout: logout,
+    showExamples: showExamples,
+    showProjects: showProjects,
+    selectExample: selectExample,
+    selectProject: selectProject,
+    selectKey: selectKey,
+
+    // Helper functions.
+    getSDK: getSDK,
 }
 
 function init() {
@@ -51,9 +56,11 @@ function init() {
                 console.log('Flux Login Succeeded. Redirecting again to ' + this.redirectUri + ' ...');
                 window.location.replace(this.redirectUri);
             }.bind(this));
+        } else {
+            if (this.setOnInitial) { this.setOnInitial(); }
         }
     } else {
-        if (this.onReady) { this.onReady(); }
+        if (this.setOnLogin) { this.setOnLogin(); }
     }
 }
 
@@ -66,10 +73,6 @@ function getSDK(clientId, redirectUri) {
     }
 
     return sdk;
-}
-
-function isAuthed() {
-    return (getFluxCredentials() ? true : false);
 }
 
 function login() {
@@ -87,12 +90,64 @@ function logout() {
     localStorage.removeItem('fluxCredentials');
     localStorage.removeItem('state');
     localStorage.removeItem('nonce');
-    this.selectedFluxDataProjectId = null;
-    this.selectedFluxDataDataKeyId = null;
+    this.setOnInitial();
 }
 
 function setExampleData(label, data) {
     this.exampleDataTable[label] = data;
+}
+
+function setOnInitial(callback) {
+    this.setOnInitial = callback;
+}
+
+function setOnLogin(callback) {
+    this.setOnLogin = callback;
+}
+
+function setOnExamples(callback) {
+    this.setOnExamples = callback;
+}
+
+function setOnProjects(callback) {
+    this.setOnProjects = callback;
+}
+
+function setOnKeys(callback) {
+    this.setOnKeys = callback;
+}
+
+function setOnValue(callback) {
+    this.setOnValue = callback;
+}
+
+function showExamples() {
+    this.setOnExamples(listExampleData.bind(this)());
+}
+
+function showProjects() {
+    this.setOnProjects(listFluxProjects.bind(this)());
+}
+
+function selectExample(label) {
+    // Wrapping in Promise object.
+    var promise = new Promise(function(resolve, reject) {
+        resolve(getExampleData.bind(this)(label));
+    }.bind(this));
+    this.setOnValue(promise);
+}
+
+function selectProject(projectId) {
+    this.selectedProjectId = projectId;
+    this.setOnKeys(listFluxDataKeys.bind(this)(projectId));
+}
+
+function selectKey(keyId) {
+    this.setOnValue(getFluxValue.bind(this)(this.selectedProjectId, keyId));
+}
+
+function isAuthed() {
+    return (getFluxCredentials() ? true : false);
 }
 
 function listExampleData() {
@@ -101,10 +156,6 @@ function listExampleData() {
 
 function getExampleData(label) {
     return this.exampleDataTable[label];
-}
-
-function selectExampleData(label) {
-    this.selectedExampleDataLabel = label;
 }
 
 function listFluxProjects() {
@@ -122,19 +173,6 @@ function getFluxValue(projectId, dataKeyId) {
     return new sdk.Project(getFluxCredentials(), projectId)
         .getDataTable()
         .fetchCell(dataKeyId);
-}
-
-function selectFluxData(projectId, dataKeyId) {
-    this.selectedFluxDataProjectId = projectId;
-    this.selectedFluxDataDataKeyId = dataKeyId;
-}
-
-function getData(callback) {
-    if (isAuthed()) {
-        return getFluxValue(this.selectedFluxDataProjectId, this.selectedFluxDataDataKeyId).then(callback);
-    } else {
-        return callback(getExampleData.bind(this)(this.selectedExampleDataLabel));
-    }
 }
 
 function getFluxCredentials() {
