@@ -60,13 +60,13 @@ Calls the callback function provided in ```setOnExamples```.
 ####showProjects()
 Calls the callback function provided in ```setOnProjects```.
 
-###selectExample(label)
+####selectExample(label)
 Calls the callback function provided in ```setOnValue``` with the corresponding example data as the selected value.
 
-###selectProject(projectId)
+####selectProject(projectId)
 Calls the callback function provided in ```setOnKeys``` showing data keys that belong to the selected Flux project.
 
-###selectKey(keyId)
+####selectKey(keyId)
 Calls the callback function provided in ```setOnValue``` with the corresponding Flux data key value as the selected value.
 
 ### Helpers
