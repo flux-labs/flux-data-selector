@@ -2,10 +2,10 @@ var ds = new FluxDataSelector('0f823656-da5e-4c8e-a704-91ab524aac42', 'http://lo
 
 ds.setOnInitial(initialView);
 ds.setOnLogin(fluxView);
-ds.setOnExamples(populateExamples)
-ds.setOnProjects(populateProjects)
-ds.setOnKeys(populateKeys)
-ds.setOnValue(onValueChange)
+ds.setOnExamples(populateExamples);
+ds.setOnProjects(populateProjects);
+ds.setOnKeys(populateKeys);
+ds.setOnValue(onValueChange);
 
 ds.setExampleData('example data 1', '{ fish: 2 }');
 ds.setExampleData('example data 2', '{ fish: 3 }');
