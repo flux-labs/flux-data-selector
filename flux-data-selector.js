@@ -8,12 +8,12 @@ var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.redirectUri = redirectUri;
     if (config) {
         this.exampleDataTable = config.exampleData
-        this.setOnInitial = config.setOnInitial;
-        this.setOnLogin = config.setOnLogin;
-        this.setOnExamples = config.setOnExamples;
-        this.setOnProjects = config.setOnProjects;
-        this.setOnKeys = config.setOnKeys;
-        this.setOnValue = config.setOnValue;
+        this.setOnInitialCallback = config.setOnInitial;
+        this.setOnLoginCallback = config.setOnLogin;
+        this.setOnExamplesCallback = config.setOnExamples;
+        this.setOnProjectsCallback = config.setOnProjects;
+        this.setOnKeysCallback = config.setOnKeys;
+        this.setOnValueCallback = config.setOnValue;
     }
 }
 
@@ -57,10 +57,10 @@ function init() {
                 window.location.replace(this.redirectUri);
             }.bind(this));
         } else {
-            if (this.setOnInitial) { this.setOnInitial(); }
+            if (this.setOnInitialCallback) { this.setOnInitialCallback(); }
         }
     } else {
-        if (this.setOnLogin) { this.setOnLogin(); }
+        if (this.setOnLoginCallback) { this.setOnLoginCallback(); }
     }
 }
 
@@ -90,7 +90,7 @@ function logout() {
     localStorage.removeItem('fluxCredentials');
     localStorage.removeItem('state');
     localStorage.removeItem('nonce');
-    this.setOnInitial();
+    this.setOnInitialCallback();
 }
 
 function setExampleData(label, data) {
@@ -98,35 +98,35 @@ function setExampleData(label, data) {
 }
 
 function setOnInitial(callback) {
-    this.setOnInitial = callback;
+    this.setOnInitialCallback = callback;
 }
 
 function setOnLogin(callback) {
-    this.setOnLogin = callback;
+    this.setOnLoginCallback = callback;
 }
 
 function setOnExamples(callback) {
-    this.setOnExamples = callback;
+    this.setOnExamplesCallback = callback;
 }
 
 function setOnProjects(callback) {
-    this.setOnProjects = callback;
+    this.setOnProjectsCallback = callback;
 }
 
 function setOnKeys(callback) {
-    this.setOnKeys = callback;
+    this.setOnKeysCallback = callback;
 }
 
 function setOnValue(callback) {
-    this.setOnValue = callback;
+    this.setOnValueCallback = callback;
 }
 
 function showExamples() {
-    this.setOnExamples(listExampleData.bind(this)());
+    this.setOnExamplesCallback(listExampleData.bind(this)());
 }
 
 function showProjects() {
-    this.setOnProjects(listFluxProjects.bind(this)());
+    this.setOnProjectsCallback(listFluxProjects.bind(this)());
 }
 
 function selectExample(label) {
@@ -134,16 +134,16 @@ function selectExample(label) {
     var promise = new Promise(function(resolve, reject) {
         resolve(getExampleData.bind(this)(label));
     }.bind(this));
-    this.setOnValue(promise);
+    this.setOnValueCallback(promise);
 }
 
 function selectProject(projectId) {
     this.selectedProjectId = projectId;
-    this.setOnKeys(listFluxDataKeys.bind(this)(projectId));
+    this.setOnKeysCallback(listFluxDataKeys.bind(this)(projectId));
 }
 
 function selectKey(keyId) {
-    this.setOnValue(getFluxValue.bind(this)(this.selectedProjectId, keyId));
+    this.setOnValueCallback(getFluxValue.bind(this)(this.selectedProjectId, keyId));
 }
 
 function isAuthed() {
