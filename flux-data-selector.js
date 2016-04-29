@@ -1,6 +1,8 @@
 var FluxDataSelector = (function() {
 
 var sdk;
+var dataTables = {};
+var websocketConnections = {};
 
 var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
@@ -87,6 +89,7 @@ function login() {
 }
 
 function logout() {
+    closeWebsocketConnections();
     localStorage.removeItem('fluxCredentials');
     localStorage.removeItem('state');
     localStorage.removeItem('nonce');
@@ -144,6 +147,7 @@ function selectProject(projectId) {
 
 function selectKey(keyId) {
     this.setOnValueCallback(getFluxValue.bind(this)(this.selectedProjectId, keyId));
+    setUpNotification(this, this.selectedProjectId, keyId);
 }
 
 function isAuthed() {
@@ -164,15 +168,58 @@ function listFluxProjects() {
 }
 
 function listFluxDataKeys(projectId) {
-    return new sdk.Project(getFluxCredentials(), projectId)
-        .getDataTable()
-        .listCells();
+    return getDataTable(projectId).listCells();
 }
 
 function getFluxValue(projectId, dataKeyId) {
-    return new sdk.Project(getFluxCredentials(), projectId)
-        .getDataTable()
-        .fetchCell(dataKeyId);
+    return getDataTable(projectId).fetchCell(dataKeyId);
+}
+
+function getDataTable(projectId) {
+    if (!(projectId in dataTables)) {
+      dataTables[projectId] = new sdk.Project(getFluxCredentials(), projectId).getDataTable();
+    }
+    return dataTables[projectId];
+}
+
+function setUpNotification(dataSelector, projectId, keyId) {
+    var dt = getDataTable(projectId);
+    var options = {
+        onOpen: function() {
+            console.log('Websocket opened for '+ projectId + ' ' + keyId + '.');
+            return;
+        },
+        onError: function() {
+            console.log('Websocket error for '+ projectId + ' ' + keyId + '.');
+            return;
+        }
+    };
+
+    if (!(projectId in websocketConnections)) {
+        dt.openWebSocket(options);
+        websocketConnections[projectId] = true;
+    }
+
+    dt.removeWebSocketHandler(this.websocketCallbackHandler);
+
+    this.websocketCallbackHandler = function(msg) {
+        console.log('Notification received.', msg);
+        if (msg.body.id === keyId) {
+            console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
+            dataSelector.setOnValueCallback(getFluxValue.bind(this)(projectId, keyId));
+        }
+    }
+
+    dt.addWebSocketHandler(this.websocketCallbackHandler);
+
+}
+
+function closeWebsocketConnections() {
+    for (var project in dataTables) {
+        dataTables[project].closeWebSocket();
+    }
+    dataTables = {};
+    websocketConnections = {};
 }
 
 function getFluxCredentials() {
