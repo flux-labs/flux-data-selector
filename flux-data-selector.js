@@ -8,6 +8,7 @@ var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
     this.clientId = clientId;
     this.redirectUri = redirectUri;
+    this.websocketCallbackHandlers = {};
     if (config) {
         this.exampleDataTable = config.exampleData
         this.setOnInitialCallback = config.setOnInitial;
@@ -200,9 +201,9 @@ function setUpNotification(dataSelector, projectId, keyId) {
         websocketConnections[projectId] = true;
     }
 
-    dt.removeWebSocketHandler(this.websocketCallbackHandler);
+    dt.removeWebSocketHandler(this.websocketCallbackHandlers[keyId]);
 
-    this.websocketCallbackHandler = function(msg) {
+    this.websocketCallbackHandlers[keyId] = function(msg) {
         console.log('Notification received.', msg);
         if (msg.body.id === keyId) {
             console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
@@ -210,7 +211,7 @@ function setUpNotification(dataSelector, projectId, keyId) {
         }
     }
 
-    dt.addWebSocketHandler(this.websocketCallbackHandler);
+    dt.addWebSocketHandler(this.websocketCallbackHandlers[keyId]);
 
 }
 
