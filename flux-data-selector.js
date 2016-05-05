@@ -2,7 +2,6 @@ var FluxDataSelector = (function() {
 
 var sdk;
 var dataTables = {};
-var websocketConnections = {};
 
 var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
@@ -178,9 +177,12 @@ function getFluxValue(projectId, dataKeyId) {
 
 function getDataTable(projectId) {
     if (!(projectId in dataTables)) {
-      dataTables[projectId] = new sdk.Project(getFluxCredentials(), projectId).getDataTable();
+      dataTables[projectId] = {
+          dt: new sdk.Project(getFluxCredentials(), projectId).getDataTable(),
+          websocketOpen: false
+      }
     }
-    return dataTables[projectId];
+    return dataTables[projectId].dt;
 }
 
 function setUpNotification(dataSelector, projectId, keyId) {
@@ -196,14 +198,16 @@ function setUpNotification(dataSelector, projectId, keyId) {
         }
     };
 
-    if (!(projectId in websocketConnections)) {
-        dt.openWebSocket(options);
-        websocketConnections[projectId] = true;
+    // Handler that calls the correct handlers for particular key ids, if set.
+    function websocketRefHandler(msg) {
+        if (msg.body.id in dataSelector.websocketCallbackHandlers) {
+            dataSelector.websocketCallbackHandlers[msg.body.id](msg);
+        } else {
+            console.log('Received a notification, but key id is not matched by any callback handlers.')
+        }
     }
 
-    dt.removeWebSocketHandler(this.websocketCallbackHandlers[keyId]);
-
-    this.websocketCallbackHandlers[keyId] = function(msg) {
+    dataSelector.websocketCallbackHandlers[keyId] = function(msg) {
         console.log('Notification received.', msg);
         if (msg.body.id === keyId) {
             console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
@@ -211,8 +215,12 @@ function setUpNotification(dataSelector, projectId, keyId) {
         }
     }
 
-    dt.addWebSocketHandler(this.websocketCallbackHandlers[keyId]);
-
+    if (!dataTables[projectId].websocketOpen) {
+        console.log("websocketOpen", dataTables[projectId]);
+        dataTables[projectId].websocketOpen = true;
+        dt.openWebSocket(options);
+        dt.addWebSocketHandler(websocketRefHandler);
+    }
 }
 
 function closeWebsocketConnections() {
@@ -220,7 +228,6 @@ function closeWebsocketConnections() {
         dataTables[project].closeWebSocket();
     }
     dataTables = {};
-    websocketConnections = {};
 }
 
 function getFluxCredentials() {
