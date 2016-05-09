@@ -16,6 +16,7 @@ var DataSelector = function DataSelector(clientId, redirectUri, config) {
         this.setOnProjectsCallback = config.setOnProjects;
         this.setOnKeysCallback = config.setOnKeys;
         this.setOnValueCallback = config.setOnValue;
+        this.setOnNotificationCallback = config.setOnNotification;
     }
 }
 
@@ -31,6 +32,7 @@ DataSelector.prototype = {
     setOnProjects: setOnProjects,
     setOnKeys: setOnKeys,
     setOnValue: setOnValue,
+    setOnNotification: setOnNotification,
 
     // User actions.
     login: login,
@@ -124,6 +126,11 @@ function setOnValue(callback) {
     this.setOnValueCallback = callback;
 }
 
+function setOnNotification(callback) {
+    this.setOnNotificationCallback = callback;
+}
+
+
 function showExamples() {
     this.setOnExamplesCallback(listExampleData.bind(this)());
 }
@@ -211,12 +218,15 @@ function setUpNotification(dataSelector, projectId, keyId) {
         console.log('Notification received.', msg);
         if (msg.body.id === keyId) {
             console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
-            dataSelector.setOnValueCallback(getFluxValue.bind(this)(projectId, keyId));
+            if (dataSelector.setOnNotificationCallback) {
+              dataSelector.setOnNotificationCallback(getFluxValue.bind(this)(projectId, keyId));
+            } else {
+              dataSelector.setOnValueCallback(getFluxValue.bind(this)(projectId, keyId));
+            }
         }
     }
 
     if (!dataTables[projectId].websocketOpen) {
-        console.log("websocketOpen", dataTables[projectId]);
         dataTables[projectId].websocketOpen = true;
         dt.openWebSocket(options);
         dt.addWebSocketHandler(websocketRefHandler);
