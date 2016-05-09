@@ -235,7 +235,7 @@ function setUpNotification(dataSelector, projectId, keyId) {
 
 function closeWebsocketConnections() {
     for (var project in dataTables) {
-        dataTables[project].closeWebSocket();
+        dataTables[project].dt.closeWebSocket();
     }
     dataTables = {};
 }
