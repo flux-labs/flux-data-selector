@@ -13,6 +13,7 @@
     <!-- Flux SDK -->
     <script type="text/javascript" src="flux-sdk-min.js"></script>
     <script type="text/javascript" src="flux-data-selector.js"></script>
+    <script type="text/javascript" src="flux-data-selector-ui.js"></script>
   </head>
 
   <body>
@@ -20,5 +21,9 @@
       <div id="flux-data-selector"></div>
     </div>
   </body>
-  <script type="text/javascript" src="flux-data-selector-ui.js"></script>
+  <script>
+    var ds = new FluxDataSelector('0f823656-da5e-4c8e-a704-91ab524aac42', 'http://localhost:8000');
+    FluxDataSelectorUI(ds, 'flux-data-selector');
+  </script>
+
 </html>
