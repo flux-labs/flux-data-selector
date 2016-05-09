@@ -2,12 +2,12 @@ var FluxDataSelector = (function() {
 
 var sdk;
 var dataTables = {};
+var websocketCallbackHandlers = {};
 
 var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
     this.clientId = clientId;
     this.redirectUri = redirectUri;
-    this.websocketCallbackHandlers = {};
     if (config) {
         this.exampleDataTable = config.exampleData
         this.setOnInitialCallback = config.setOnInitial;
@@ -207,14 +207,14 @@ function setUpNotification(dataSelector, projectId, keyId) {
 
     // Handler that calls the correct handlers for particular key ids, if set.
     function websocketRefHandler(msg) {
-        if (msg.body.id in dataSelector.websocketCallbackHandlers) {
-            dataSelector.websocketCallbackHandlers[msg.body.id](msg);
+        if (msg.body.id in websocketCallbackHandlers) {
+            websocketCallbackHandlers[msg.body.id](msg);
         } else {
             console.log('Received a notification, but key id is not matched by any callback handlers.')
         }
     }
 
-    dataSelector.websocketCallbackHandlers[keyId] = function(msg) {
+    websocketCallbackHandlers[keyId] = function(msg) {
         console.log('Notification received.', msg);
         if (msg.body.id === keyId) {
             console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
