@@ -58,7 +58,7 @@ function fluxView() {
     template =
         '<div class="ui form">' +
             '<div class="three fields">' +
-                '<div class="three wide field">' +
+                '<div class="seven wide field">' +
                     '<label>Project</label>' +
                     '<div class="ui fluid search selection dropdown projects-selection-dropdown">' +
                         '<i class="dropdown icon"></i>' +
@@ -67,7 +67,7 @@ function fluxView() {
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div class="three wide field">' +
+                '<div class="seven wide field">' +
                     '<label>Data Key</label>' +
                     '<div class="ui fluid search selection dropdown data-keys-selection-dropdown">' +
                         '<i class="dropdown icon"></i>' +
