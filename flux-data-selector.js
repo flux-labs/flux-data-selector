@@ -42,9 +42,11 @@ DataSelector.prototype = {
     selectExample: selectExample,
     selectProject: selectProject,
     selectKey: selectKey,
+    updateKey: updateKey,
 
     // Helper functions.
     getSDK: getSDK,
+    getFluxValue: getFluxValue,
 }
 
 function init() {
@@ -157,6 +159,10 @@ function selectKey(keyId) {
     setUpNotification(this, this.selectedProjectId, keyId);
 }
 
+function updateKey(keyId, value, description, label) {
+  return updateFluxValue(this.selectedProjectId, keyId, value, description, label);
+}
+
 function isAuthed() {
     return (getFluxCredentials() ? true : false);
 }
@@ -180,6 +186,20 @@ function listFluxDataKeys(projectId) {
 
 function getFluxValue(projectId, dataKeyId) {
     return getDataTable(projectId).fetchCell(dataKeyId);
+}
+
+function updateFluxValue(projectId, dataKeyId, value, description, label) {
+    var options = {};
+    if (description) {
+      options.description = description;
+    }
+    if (label) {
+      options.label = label
+    }
+    if (value) {
+      options.value = value;
+    }
+    return getDataTable(projectId).getCell(dataKeyId).update(options);
 }
 
 function getDataTable(projectId) {
