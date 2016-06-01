@@ -43,6 +43,7 @@ DataSelector.prototype = {
     selectProject: selectProject,
     selectKey: selectKey,
     updateKey: updateKey,
+    createKey: createKey,
 
     // Helper functions.
     getSDK: getSDK,
@@ -160,11 +161,28 @@ function selectKey(keyId) {
 }
 
 function updateKey(keyId, value, description, label) {
-  return updateFluxValue(this.selectedProjectId, keyId, value, description, label);
+    var options = {};
+    if (description) {
+        options.description = description;
+    }
+    if (label) {
+        options.label = label
+    }
+    if (value) {
+        options.value = value;
+    }
+    return getDataTable(this.selectedProjectId).getCell(keyId).update(options);
 }
 
-function isAuthed() {
-    return (getFluxCredentials() ? true : false);
+function createKey(label, value, description) {
+    var options = {};
+    if (value) {
+        options.value = value;
+    }
+    if (description) {
+        option.description = description;
+    }
+    return getDataTable(this.selectedProjectId).createCell(label, options);
 }
 
 function listExampleData() {
@@ -186,20 +204,6 @@ function listFluxDataKeys(projectId) {
 
 function getFluxValue(projectId, dataKeyId) {
     return getDataTable(projectId).fetchCell(dataKeyId);
-}
-
-function updateFluxValue(projectId, dataKeyId, value, description, label) {
-    var options = {};
-    if (description) {
-      options.description = description;
-    }
-    if (label) {
-      options.label = label
-    }
-    if (value) {
-      options.value = value;
-    }
-    return getDataTable(projectId).getCell(dataKeyId).update(options);
 }
 
 function getDataTable(projectId) {
@@ -230,7 +234,7 @@ function setUpNotification(dataSelector, projectId, keyId) {
         if (msg.body.id in websocketCallbackHandlers) {
             websocketCallbackHandlers[msg.body.id](msg);
         } else {
-            console.log('Received a notification, but key id is not matched by any callback handlers.')
+            console.log('Received a notification, but key id is not matched by any callback handlers.');
         }
     }
 
