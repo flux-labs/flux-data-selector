@@ -2,12 +2,12 @@ var FluxDataSelector = (function() {
 
 var sdk;
 var dataTables = {};
-var websocketCallbackHandlers = {};
 
 var DataSelector = function DataSelector(clientId, redirectUri, config) {
     this.exampleDataTable = {};
     this.clientId = clientId;
     this.redirectUri = redirectUri;
+    this.websocketId = -1;
     if (config) {
         this.exampleDataTable = config.exampleData
         this.setOnInitialCallback = config.setOnInitial;
@@ -155,9 +155,11 @@ function selectProject(projectId) {
     this.setOnKeysCallback(listFluxDataKeys.bind(this)(projectId));
 }
 
-function selectKey(keyId) {
+function selectKey(keyId, notify = true) {
     this.setOnValueCallback(getFluxValue.bind(this)(this.selectedProjectId, keyId));
-    setUpNotification(this, this.selectedProjectId, keyId);
+    if (notify) {
+        setUpNotification(this, this.selectedProjectId, keyId);
+    }
 }
 
 function updateKey(keyId, value, description, label) {
@@ -171,7 +173,7 @@ function updateKey(keyId, value, description, label) {
     if (value) {
         options.value = value;
     }
-    return getDataTable(this.selectedProjectId).getCell(keyId).update(options);
+    return getDataTable(this.selectedProjectId).table.getCell(keyId).update(options);
 }
 
 function createKey(label, value, description) {
@@ -182,7 +184,7 @@ function createKey(label, value, description) {
     if (description) {
         option.description = description;
     }
-    return getDataTable(this.selectedProjectId).createCell(label, options);
+    return getDataTable(this.selectedProjectId).table.createCell(label, options);
 }
 
 function listExampleData() {
@@ -199,21 +201,22 @@ function listFluxProjects() {
 }
 
 function listFluxDataKeys(projectId) {
-    return getDataTable(projectId).listCells();
+    return getDataTable(projectId).table.listCells();
 }
 
 function getFluxValue(projectId, dataKeyId) {
-    return getDataTable(projectId).fetchCell(dataKeyId);
+    return getDataTable(projectId).table.fetchCell(dataKeyId);
 }
 
 function getDataTable(projectId) {
     if (!(projectId in dataTables)) {
       dataTables[projectId] = {
-          dt: new sdk.Project(getFluxCredentials(), projectId).getDataTable(),
+          table: new sdk.Project(getFluxCredentials(), projectId).getDataTable(),
+          handlers: {},
           websocketOpen: false
       }
     }
-    return dataTables[projectId].dt;
+    return dataTables[projectId];
 }
 
 function setUpNotification(dataSelector, projectId, keyId) {
@@ -231,35 +234,52 @@ function setUpNotification(dataSelector, projectId, keyId) {
 
     // Handler that calls the correct handlers for particular key ids, if set.
     function websocketRefHandler(msg) {
-        if (msg.body.id in websocketCallbackHandlers) {
-            websocketCallbackHandlers[msg.body.id](msg);
+        console.log('Notification received.', msg);
+        if (dt.handlers.hasOwnProperty(msg.body.id)) {
+            console.log('Calling handlers for '+ projectId + ' ' + keyId + '.');
+            var handlers = dt.handlers[msg.body.id];
+            for (var i=0; i<handlers.length; i++) {
+                if (handlers[i]) {
+                  handlers[i](msg);
+                }
+            }
         } else {
             console.log('Received a notification, but key id is not matched by any callback handlers.');
         }
     }
 
-    websocketCallbackHandlers[keyId] = function(msg) {
-        console.log('Notification received.', msg);
+    if (!dt.handlers[keyId]) {
+        dt.handlers[keyId] = [];
+    }
+
+    if (dataSelector.websocketId === -1) {
+        if (!dt.handlers[keyId][dt.handlers[keyId].length]) {
+            dataSelector.websocketId = dt.handlers[keyId].length;
+        } else {
+            console.error('Collision occured. This should not happen.');
+        }
+    }
+    console.info(dataSelector.websocketId, 'WEBSOCKET');
+    dt.handlers[keyId][dataSelector.websocketId] = function(msg) {
         if (msg.body.id === keyId) {
-            console.log('Calling setOnValueCallback on '+ projectId + ' ' + keyId + '.');
             if (dataSelector.setOnNotificationCallback) {
               dataSelector.setOnNotificationCallback(getFluxValue.bind(this)(projectId, keyId));
             } else {
               dataSelector.setOnValueCallback(getFluxValue.bind(this)(projectId, keyId));
             }
         }
-    }
+    };
 
-    if (!dataTables[projectId].websocketOpen) {
-        dataTables[projectId].websocketOpen = true;
-        dt.openWebSocket(options);
-        dt.addWebSocketHandler(websocketRefHandler);
+    if (!dt.websocketOpen) {
+        dt.websocketOpen = true;
+        dt.table.openWebSocket(options);
+        dt.table.addWebSocketHandler(websocketRefHandler);
     }
 }
 
 function closeWebsocketConnections() {
     for (var project in dataTables) {
-        dataTables[project].dt.closeWebSocket();
+        dataTables[project].table.closeWebSocket();
     }
     dataTables = {};
 }
