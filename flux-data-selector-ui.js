@@ -15,16 +15,18 @@ function initialView() {
     var template =
         '<div class="ui form">' +
             '<div class="two fields">' +
-                '<div class="six wide field">' +
+                '<div class="thirteen wide field">' +
                     '<label>Example Data</label>' +
-                    '<div class="ui fluid search selection dropdown examples-selection-dropdown">' +
+                    '<div class="ui fluid search selection dropdown examples-selection-dropdown"' +
+                          'data-content="Select from one of the example data keys."' +
+                          'data-position="top right">' +
                         '<i class="dropdown icon"></i>' +
                         '<div class="default text">Select Examples</div>' +
                         '<div class="menu">' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div class="two wide field">' +
+                '<div class="three wide field">' +
                     '<label>&nbsp;</label>' +
                     '<button id="useFluxButton" class="teal ui button">Use your own data</button>' +
                 '</div>' +
@@ -37,6 +39,8 @@ function initialView() {
     $(selectorIdString + ' #useFluxButton').click(function() {
         ds.login();
     });
+
+    $('.examples-selection-dropdown').popup();
 
     ds.showExamples();
 }
@@ -60,7 +64,9 @@ function fluxView() {
             '<div class="three fields">' +
                 '<div class="seven wide field">' +
                     '<label>Project</label>' +
-                    '<div class="ui fluid search selection dropdown projects-selection-dropdown">' +
+                    '<div class="ui fluid search selection dropdown projects-selection-dropdown"' +
+                          'data-content="Choose one of your Flux projects."' +
+                          'data-position="top right">' +
                         '<i class="dropdown icon"></i>' +
                         '<div class="default text">Select Project</div>' +
                         '<div class="menu">' +
@@ -69,7 +75,9 @@ function fluxView() {
                 '</div>' +
                 '<div class="seven wide field">' +
                     '<label>Data Key</label>' +
-                    '<div class="ui fluid search selection dropdown data-keys-selection-dropdown">' +
+                    '<div class="ui fluid search selection dropdown data-keys-selection-dropdown"' +
+                        'data-content="Choose a data key from the selected Flux Project."' +
+                        'data-position="top right">' +
                         '<i class="dropdown icon"></i>' +
                         '<div class="default text">Select Data Key</div>' +
                         '<div class="menu">' +
@@ -89,6 +97,8 @@ function fluxView() {
     $('#logoutFluxButton').click(function() {
         ds.logout();
     });
+
+    $('.projects-selection-dropdown, .data-keys-selection-dropdown').popup();
 
     ds.showProjects();
 }
@@ -131,6 +141,9 @@ function onValueChange(valuePromise) {
     valuePromise
         .then(function(value) {
             console.log('Retrieved Value: ' + value);
+        })
+        .catch(function(err){
+            console.error(err);
         });
 }
 
