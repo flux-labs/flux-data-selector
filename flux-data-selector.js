@@ -86,6 +86,7 @@ function login() {
     var credentials = getFluxCredentials();
     if (!credentials) {
         if (!window.location.hash.match(/access_token/)) {
+            localStorage.clear();
             window.location.replace(sdk.getAuthorizeUrl(getState(), getNonce()));
         }
     } else {
