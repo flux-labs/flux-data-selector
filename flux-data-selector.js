@@ -155,7 +155,8 @@ function selectProject(projectId) {
     this.setOnKeysCallback(listFluxDataKeys.bind(this)(projectId));
 }
 
-function selectKey(keyId, notify = true) {
+function selectKey(keyId, notify) {
+    if (notify === undefined) notify = true;
     this.setOnValueCallback(getFluxValue.bind(this)(this.selectedProjectId, keyId));
     if (notify) {
         setUpNotification(this, this.selectedProjectId, keyId);
