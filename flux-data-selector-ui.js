@@ -107,7 +107,7 @@ function populateProjects(projectsPromise) {
     $('.projects-selection-dropdown > div.menu *').remove();
     projectsPromise
         .then(function(projects) {
-            projects.entities.map(function(item) {
+            projects.entities.reverse().map(function(item) {
                 $('.projects-selection-dropdown > div.menu')
                     .append('<div class="item" data-value='+item.id+'>'+item.name+'</div>');
             });
@@ -124,7 +124,7 @@ function populateKeys(keysPromise) {
     $('.data-keys-selection-dropdown > div.menu *').remove();
     keysPromise
         .then(function(keys) {
-            keys.entities.map(function(item) {
+            keys.entities.reverse().map(function(item) {
                 $('.data-keys-selection-dropdown > div.menu')
                     .append('<div class="item" data-value='+item.id+'>'+item.label+'</div>');
             });
