@@ -268,7 +268,7 @@ function setUpNotification(dataSelector, projectId, keyId) {
             console.error('Collision occured. This should not happen.');
         }
     }
-    console.info(dataSelector.websocketId, 'WEBSOCKET');
+
     dt.handlers[keyId][dataSelector.websocketId] = function(msg) {
         if (msg.body.id === keyId) {
             if (dataSelector.setOnNotificationCallback) {
