@@ -44,6 +44,7 @@ DataSelector.prototype = {
     selectKey: selectKey,
     updateKey: updateKey,
     createKey: createKey,
+    getKey: getKey,
 
     // Helper functions.
     getSDK: getSDK,
@@ -178,6 +179,10 @@ function updateKey(keyId, value, description, label) {
         options.value = value;
     }
     return getDataTable(this.selectedProjectId).table.getCell(keyId).update(options);
+}
+
+function getKey(keyId) {
+  return getFluxValue(this.selectedProjectId, keyId);
 }
 
 function createKey(label, value, description) {
